@@ -1,0 +1,70 @@
+﻿@model List<Test.Models.UserProfile>
+<div id="UserProfilesContatiner">
+    <label for="CitySelect">Фільтр по місту</label>
+    <select id="CitySelect">
+        <option></option>
+        @foreach (var item in Model.GroupBy(c => c.City))
+        {
+            <option>@item.Key</option>
+        }
+    </select>
+    <label for="AgeSelect">Сортування за віком</label>
+    <select id="AgeSelect">
+        <option></option>
+        <option>Спочатку старші</option>
+        <option>Спочатку молодші</option>
+    </select>
+    <table border="1" width="450" style="margin-top:20px;">
+        <thead>
+            <tr>
+                <td><strong>Им'я</strong></td>
+                <td><strong>Місто</strong></td>
+                <td><strong>Вік</strong></td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.City</td>
+                    <td>@item.Age</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var ageSelected;
+        var citySelected;
+        $("#AgeSelect").change(function () {
+            ageSelected = $('#AgeSelect').prop("selectedIndex");
+            citySelected = $('#CitySelect').val();
+            $.ajax({
+                url: '/User/SortByAge',
+                type: 'POST',
+                data: { selection: ageSelected, model: @Html.Raw(Json.Encode(Model)) }
+        }).done(function (response) {
+            $("#UserProfilesContatiner").html(response);
+            $('#AgeSelect').prop("selectedIndex", ageSelected);
+            $('#CitySelect').val(citySelected);
+        });
+    });
+
+    $("#CitySelect").change(function () {
+        citySelected = $('#CitySelect').val();
+        ageSelected = $('#AgeSelect').prop("selectedIndex");
+        $.ajax({
+            url: '/User/FilterByCity',
+            type: 'POST',
+            data: { city: citySelected, model: @Html.Raw(Json.Encode(Model)) }
+        }).done(function (response) {
+            $("#UserProfilesContatiner").html(response);
+            $('#CitySelect').val(citySelected);
+            $('#AgeSelect').prop("selectedIndex", ageSelected);
+            });
+        });
+    });
+</script>
